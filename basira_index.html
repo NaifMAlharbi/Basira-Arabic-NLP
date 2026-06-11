@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بَصِيرة — الذكاء الاصطناعي في المعالجة الآلية للغة العربية</title>
+<meta name="description" content="بَصِيرة: مسار آلي لرقمنة وفهم المخطوطات والوثائق العربية يدمج الرؤية الحاسوبية ونماذج اللغة العربية الكبيرة و RAG — مقرر Advanced Deep Learning">
+<meta name="keywords" content="المعالجة الآلية للغة العربية, اللغويات الحاسوبية, Arabic NLP, CNN, Transformer, Diffusion, RAG, Qwen2-VL, ALLaM, Jais, AraBERT, Qari-OCR, المخطوطات, OCR, سدايا, التراث العربي">
+<meta name="author" content="نايف الحربي">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#1A2744">
+<link rel="canonical" href="https://NaifMAlharbi.github.io/Basira-Arabic-NLP/">
+<meta property="og:type" content="article">
+<meta property="og:locale" content="ar_SA">
+<meta property="og:title" content="بَصِيرة — الذكاء الاصطناعي في المعالجة الآلية للغة العربية">
+<meta property="og:description" content="مسار آلي يقرأ المخطوطات العربية بالرؤية الحاسوبية ويفهمها بنماذج ALLaM/Jais المقيّدة بـ RAG دون هلوسة.">
+<meta property="og:url" content="https://NaifMAlharbi.github.io/Basira-Arabic-NLP/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="بَصِيرة — المعالجة الآلية للغة العربية بالذكاء الاصطناعي">
+<meta name="twitter:description" content="رقمنة وفهم المخطوطات العربية عبر CV + LLMs عربية + RAG — مقرر التعلم العميق المتقدم.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A2744;
+    --ink-deep: #0D1B2A;
+    --paper: #F8F9FC;
+    --paper-warm: #EEF0F7;
+    --copper: #C9A227;
+    --copper-deep: #9A7B2E;
+    --rust: #0E6B57;
+    --muted: #64748B;
+    --line: rgba(26, 39, 68, 0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--paper);
+    color: var(--ink-deep);
+    font-size: 17px;
+    line-height: 1.85;
+    direction: rtl;
+    overflow-x: hidden;
+  }
+
+  .num, .yr { font-family: 'Playfair Display', serif; }
+  .en { font-family: 'Playfair Display', serif; font-style: italic; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(26, 39, 68, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ HERO ============ */
+  .hero {
+    min-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px 32px 64px;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .hero-top .badge {
+    background: var(--rust);
+    color: var(--paper);
+    padding: 6px 14px;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+  }
+
+  .hero-center {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px 0;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Amiri', serif;
+    font-style: italic;
+    color: var(--copper-deep);
+    font-size: 22px;
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
+  }
+
+  .hero h1 {
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 900;
+    font-size: clamp(36px, 5.5vw, 68px);
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 28px;
+    letter-spacing: -0.02em;
+  }
+
+  .hero h1 .accent {
+    color: var(--rust);
+    font-style: normal;
+    position: relative;
+  }
+
+  .hero h1 .accent::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 0;
+    left: 0;
+    height: 8px;
+    background: rgba(99, 102, 241, 0.18);
+    z-index: -1;
+  }
+
+  .hero-subtitle {
+    font-size: 21px;
+    color: var(--muted);
+    max-width: 720px;
+    margin: 0 auto;
+    font-weight: 300;
+    line-height: 1.65;
+  }
+
+  .hero-supervisor {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 15px;
+    color: var(--copper-deep);
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+
+  .term {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+    border-bottom: 1.5px dotted var(--copper);
+    padding-bottom: 1px;
+    transition: color 0.2s;
+  }
+
+  .term:hover,
+  .term:focus { color: var(--rust); outline: none; }
+
+  .term-tip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    right: 50%;
+    transform: translateX(50%) translateY(8px);
+    background: var(--ink-deep);
+    color: var(--paper);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.6;
+    width: max-content;
+    max-width: 300px;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 200;
+    box-shadow: 0 12px 32px rgba(13, 27, 42, 0.3);
+    letter-spacing: 0;
+  }
+
+  .term-tip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 50%;
+    transform: translateX(50%);
+    border: 6px solid transparent;
+    border-top-color: var(--ink-deep);
+  }
+
+  .term-tip em {
+    color: var(--copper);
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .term:hover .term-tip,
+  .term:focus .term-tip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(50%) translateY(0);
+  }
+
+  .hero-bottom {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .stat { text-align: right; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .stat-num .unit {
+    font-size: 20px;
+    color: var(--copper-deep);
+    margin-right: 6px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+  }
+
+  /* ============ NAV ============ */
+  .nav {
+    position: sticky;
+    top: 0;
+    background: rgba(248, 249, 252, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .nav-logo {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 15px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+    position: relative;
+    padding-bottom: 4px;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 2px;
+    background: var(--rust);
+    transition: width 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--rust); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ============ SECTIONS ============ */
+  section {
+    padding: 100px 0;
+    position: relative;
+  }
+
+  .section-eyebrow {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--copper-deep);
+    font-size: 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .section-eyebrow .ch {
+    font-family: 'Playfair Display', serif;
+    color: var(--rust);
+    font-weight: 900;
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .section-title {
+    font-size: clamp(32px, 4vw, 48px);
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .section-intro {
+    font-size: 19px;
+    color: var(--muted);
+    max-width: 800px;
+    line-height: 1.8;
+    margin-bottom: 64px;
+  }
+
+  /* ============ INTRO SECTION ============ */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .pull-quote {
+    background: var(--paper-warm);
+    border-right: 4px solid var(--rust);
+    padding: 32px 36px;
+    margin: 24px 0;
+    font-family: 'Amiri', serif;
+    font-size: 22px;
+    line-height: 1.7;
+    color: var(--ink);
+    font-style: italic;
+    position: relative;
+  }
+
+  .pull-quote::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    right: 24px;
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    color: var(--copper);
+    opacity: 0.4;
+    line-height: 1;
+  }
+
+  .pull-quote cite {
+    display: block;
+    margin-top: 16px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ============ MODELS / CARDS ============ */
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .model-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 36px 32px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+
+  .model-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+  }
+
+  .model-card:hover::before { width: 100%; }
+  .model-card:hover { color: var(--paper); border-color: var(--ink); }
+  .model-card:hover .model-num,
+  .model-card:hover .model-name,
+  .model-card:hover .model-desc,
+  .model-card:hover .model-name-ar,
+  .model-card:hover .model-eg { color: var(--paper); }
+  .model-card:hover .model-eg { border-color: rgba(248, 249, 252, 0.2); }
+
+  .model-formula {
+    position: relative;
+    z-index: 1;
+    margin: 14px 0 0;
+    padding: 9px 12px;
+    background: rgba(14, 107, 87, 0.06);
+    border-right: 3px solid var(--rust);
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Consolas', 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    direction: ltr;
+    text-align: left;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .model-card:hover .model-formula {
+    color: var(--paper);
+    background: rgba(248, 249, 252, 0.08);
+    border-right-color: var(--copper);
+  }
+  .model-formula .lbl { color: var(--rust); font-weight: 700; }
+  .model-card:hover .model-formula .lbl { color: var(--copper); }
+  .model-card:hover .model-tag { background: var(--rust); color: var(--paper); }
+
+  .model-card > * { position: relative; z-index: 1; }
+
+  .model-num {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--copper-deep);
+    margin-bottom: 16px;
+    transition: color 0.3s;
+  }
+
+  .model-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    line-height: 1.2;
+    transition: color 0.3s;
+  }
+
+  .model-name-ar {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+
+  .model-tag {
+    display: inline-block;
+    background: var(--paper-warm);
+    color: var(--ink);
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin-bottom: 18px;
+    transition: all 0.3s;
+  }
+
+  .model-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-deep);
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+
+  .model-eg {
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    transition: all 0.3s;
+  }
+
+  .model-eg strong { color: var(--rust); font-weight: 700; }
+
+  /* ============ COMPANIES ============ */
+  .companies {
+    background: var(--paper-warm);
+    margin: 0 -32px;
+    padding: 100px 32px;
+  }
+
+  .company-row {
+    display: grid;
+    grid-template-columns: 100px 200px 1fr 160px;
+    gap: 32px;
+    align-items: center;
+    padding: 36px 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding 0.3s;
+  }
+
+  .company-row:hover { padding-right: 16px; }
+  .company-row:last-child { border-bottom: none; }
+
+  .company-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--copper);
+    line-height: 1;
+    opacity: 0.6;
+  }
+
+  .company-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .company-origin {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .company-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-deep);
+  }
+
+  .company-desc strong { color: var(--rust); font-weight: 700; }
+
+  .company-stat {
+    text-align: left;
+    padding-right: 24px;
+    border-right: 2px solid var(--rust);
+  }
+
+  .company-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 30px;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .company-stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.3;
+  }
+
+  /* ============ TIMELINE ============ */
+  .timeline-wrap {
+    position: relative;
+    margin-top: 80px;
+  }
+
+  .tl-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 60px;
+    border: 1px solid var(--ink);
+    width: fit-content;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .tl-btn {
+    background: var(--paper);
+    color: var(--ink);
+    border: none;
+    padding: 12px 28px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .tl-btn.active { background: var(--ink); color: var(--paper); }
+  .tl-btn:not(.active):hover { background: var(--paper-warm); }
+
+  .timeline {
+    position: relative;
+    padding: 20px 0;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 50%;
+    width: 2px;
+    background: var(--line);
+    transform: translateX(50%);
+  }
+
+  .tl-item {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 32px;
+    margin-bottom: 64px;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.6s forwards;
+  }
+
+  .tl-item:nth-child(1) { animation-delay: 0.1s; }
+  .tl-item:nth-child(2) { animation-delay: 0.2s; }
+  .tl-item:nth-child(3) { animation-delay: 0.3s; }
+  .tl-item:nth-child(4) { animation-delay: 0.4s; }
+  .tl-item:nth-child(5) { animation-delay: 0.5s; }
+  .tl-item:nth-child(6) { animation-delay: 0.6s; }
+  .tl-item:nth-child(7) { animation-delay: 0.7s; }
+  .tl-item:nth-child(8) { animation-delay: 0.8s; }
+  .tl-item:nth-child(9) { animation-delay: 0.9s; }
+  .tl-item:nth-child(10) { animation-delay: 1.0s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tl-year {
+    grid-column: 2;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 28px;
+    text-align: center;
+    color: var(--paper);
+    background: var(--ink);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    z-index: 2;
+    line-height: 1;
+  }
+
+  .tl-year.future-yr {
+    background: var(--paper);
+    color: var(--rust);
+    border: 2px dashed var(--rust);
+  }
+
+  .tl-year.global { background: var(--ink); }
+  .tl-year.saudi { background: var(--rust); }
+
+  .tl-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 24px 28px;
+    position: relative;
+  }
+
+  .tl-item.right .tl-card { grid-column: 1; }
+  .tl-item.left .tl-card { grid-column: 3; }
+
+  .tl-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 16px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .tl-item.right .tl-card::after { right: -16px; }
+  .tl-item.left .tl-card::after { left: -16px; }
+
+  .tl-card-flag {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    font-weight: 600;
+  }
+
+  .tl-card-flag.global { background: var(--ink); color: var(--paper); }
+  .tl-card-flag.saudi { background: var(--rust); color: var(--paper); }
+
+  .tl-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .tl-card p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .tl-card .tl-model {
+    margin-top: 12px;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--copper-deep);
+  }
+
+  /* ============ FUTURE ============ */
+  .future-section {
+    background: var(--ink);
+    color: var(--paper);
+    margin: 0 -32px;
+    padding: 120px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .future-section::before {
+    content: '2031';
+    position: absolute;
+    top: 50%;
+    left: -50px;
+    transform: translateY(-50%);
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 420px;
+    line-height: 1;
+    color: rgba(248, 249, 252, 0.03);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .future-section .container { position: relative; z-index: 1; }
+  .future-section .section-eyebrow { color: var(--copper); }
+  .future-section .section-eyebrow .ch { color: var(--copper); }
+  .future-section .section-eyebrow::after { background: rgba(248, 249, 252, 0.15); }
+  .future-section .section-title { color: var(--paper); }
+  .future-section .section-intro { color: rgba(248, 249, 252, 0.7); }
+
+  .future-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    margin-top: 60px;
+  }
+
+  .future-item {
+    border-top: 2px solid var(--copper);
+    padding-top: 24px;
+  }
+
+  .future-item h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--paper);
+    line-height: 1.2;
+  }
+
+  .future-item p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(248, 249, 252, 0.8);
+  }
+
+  /* ============ CHALLENGES ============ */
+  .challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  .challenge {
+    border-top: 4px solid var(--rust);
+    padding-top: 20px;
+  }
+
+  .challenge .ch-num {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: var(--copper-deep);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .challenge h4 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .challenge p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-deep);
+  }
+
+  /* ============ FOOTER ============ */
+  footer {
+    background: var(--ink-deep);
+    color: var(--paper);
+    padding: 60px 32px 40px;
+    margin-top: 0;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 40px;
+  }
+
+  .footer-about h5,
+  .footer-col h5 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--copper);
+  }
+
+  .footer-about p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(248, 249, 252, 0.7);
+  }
+
+  .footer-col ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .footer-col li {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: rgba(248, 249, 252, 0.7);
+  }
+
+  .footer-col a {
+    color: rgba(248, 249, 252, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--copper); }
+
+  .footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 24px;
+    border-top: 1px solid rgba(248, 249, 252, 0.1);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: rgba(248, 249, 252, 0.5);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 900px) {
+    .hero-bottom { grid-template-columns: repeat(2, 1fr); }
+    .intro-grid { grid-template-columns: 1fr; gap: 32px; }
+    .models-grid { grid-template-columns: 1fr; }
+    .company-row { grid-template-columns: 60px 1fr; gap: 16px; }
+    .company-desc, .company-stat { grid-column: 1 / -1; }
+    .company-stat { border-right: none; padding-right: 0; text-align: right; }
+    .timeline::before { right: 32px; }
+    .tl-item { grid-template-columns: 64px 1fr; }
+    .tl-year { grid-column: 1; width: 64px; height: 64px; font-size: 20px; }
+    .tl-item.right .tl-card,
+    .tl-item.left .tl-card { grid-column: 2; }
+    .tl-item.right .tl-card::after,
+    .tl-item.left .tl-card::after { right: -16px; left: auto; }
+    .future-grid, .challenges-grid { grid-template-columns: 1fr; }
+    .footer-inner { grid-template-columns: 1fr; }
+    .future-section::before { font-size: 200px; }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+
+  .skip-link {
+    position: absolute;
+    right: 12px;
+    top: -60px;
+    z-index: 200;
+    background: var(--ink-deep);
+    color: var(--paper);
+    padding: 10px 18px;
+    border-radius: 6px;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus { top: 12px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<a href="#intro" class="skip-link">تخطَّ إلى المحتوى الرئيسي</a>
+<h1 class="sr-only">بَصِيرة — الذكاء الاصطناعي في المعالجة الآلية للغة العربية</h1>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <div class="hero-top container" style="padding: 0;">
+    <span>Advanced Deep Learning · نايف الحربي</span>
+    <span class="badge">Arabic NLP Research</span>
+  </div>
+
+  <div class="hero-center">
+    <div class="hero-eyebrow">بَصِيرة · An Arabic NLP Research Project</div>
+    <h1>من المخطوط العربي<br>إلى <span class="accent">الفهم</span> دون هلوسة</h1>
+    <p class="hero-subtitle">مسار آلي يقرأ المخطوطات والوثائق العربية بـ<span class="term" tabindex="0">CNN<span class="term-tip">الشبكات العصبية الالتفافية — تقرأ الخطّ العربي المتصل وتستخرج النص — <em class="en">Convolutional Neural Networks</em></span></span> ونماذج الرؤية واللغة، ثم يفهمها بنماذج <span class="term" tabindex="0">LLMs عربية<span class="term-tip">نماذج لغوية عربية كبيرة مثل ALLaM وJais مقيّدة بـ RAG لمنع اختلاق النصوص</span></span> مقيّدة بالاسترجاع</p>
+    <p class="hero-supervisor">تحت إشراف د. أحمد الهندي · مقرر التعلم العميق المتقدم</p>
+  </div>
+
+  <div class="hero-bottom container" style="padding: 0;">
+    <div class="stat">
+      <div class="stat-num"><span class="num">400</span><span class="unit">مليون+</span></div>
+      <div class="stat-label">ناطق بالعربية يخدمهم هذا المجال</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num"><span class="num">57</span><span class="unit">→ 86٪</span></div>
+      <div class="stat-label">قفزة دقة <span class="en">ALLaM</span> بعد إضافة <span class="en">RAG</span></div>
+    </div>
+    <div class="stat">
+      <div class="stat-num"><span class="num">~6</span><span class="unit">٪ CER</span></div>
+      <div class="stat-label">معدل خطأ الحرف في <span class="en">Qari-OCR</span> على نص مُشكَّل</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num"><span class="num">−45</span><span class="unit">٪</span></div>
+      <div class="stat-label">خفض خطأ الكلمة ببيانات <span class="en">Diffusion</span> الاصطناعية</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="main-nav" aria-label="التنقل الرئيسي">
+  <div class="nav-inner">
+    <span class="nav-logo">📜 بَصِيرة</span>
+    <ul class="nav-links">
+      <li><a href="#intro">المقدمة</a></li>
+      <li><a href="#models">النماذج</a></li>
+      <li><a href="#companies">الجهات</a></li>
+      <li><a href="#timeline">الخط الزمني</a></li>
+      <li><a href="#challenges">التحديات</a></li>
+      <li><a href="#future">المستقبل</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============ INTRO ============ -->
+<section id="intro">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">1</span><span>المقدمة</span></div>
+    <h2 class="section-title">عينٌ تقرأ الحرف<br>وعقلٌ يُدرك المعنى</h2>
+    <p class="section-intro">للعربية خصوصية تجعلها من أصعب اللغات حاسوبياً: خطٌّ متصل تتغيّر فيه أشكال الحروف، وتشكيلٌ يُحذف فينشأ الغموض، وتعدد لهجات، وشُحّ بيانات. مشروع بَصِيرة يحوّل المخطوط العربي إلى فهمٍ موثوق عبر مرحلتين.</p>
+
+    <div class="intro-grid">
+      <div>
+        <p style="font-size: 17px; line-height: 1.9; margin-bottom: 20px;"><strong style="color: var(--ink);">المرحلة الأولى — القراءة (Predictive AI):</strong> تستخدم شبكات <span class="en">CNN</span> ونماذج الرؤية واللغة مثل <span class="en">Qwen2-VL</span> و<span class="en">Qari-OCR</span> لاستخراج النص العربي من صور المخطوطات رغم اتصال الحروف وتعدد أشكالها والتشكيل.</p>
+
+        <p style="font-size: 17px; line-height: 1.9;"><strong style="color: var(--ink);">المرحلة الثانية — الفهم (Generative AI):</strong> تتلقّى نماذج اللغة العربية الكبيرة (<span class="en">ALLaM</span>، <span class="en">Jais</span>) النص المستخرَج فتُجيب عنه وتلخّصه. ولمنع الهلوسة — خصوصاً في النصوص الدينية — يُقيَّد النموذج بتقنية <span class="en">RAG</span> التي تُجبره على الاستناد إلى النص الموثَّق.</p>
+      </div>
+
+      <div>
+        <blockquote class="pull-quote">
+          اختلاق آيةٍ أو حديثٍ بثقةٍ أخطر من نموذجٍ يعترف بجهله. لهذا فإن جوهر الهندسة هنا هو فنّ التقييد.
+          <cite>— من خلاصة المشروع</cite>
+        </blockquote>
+
+        <p style="font-size: 15px; line-height: 1.8; color: var(--muted); margin-top: 24px;">يعمل المسار عبر <strong style="color: var(--ink);">مرحلتين</strong>: رؤية حاسوبية تقرأ المخطوط وتستخرج نصّه ← نموذج لغوي عربي مقيّد بـ <span class="en">RAG</span> يفهمه ويُجيب عنه دون اختلاق — لإحياء التراث المكتوب وإتاحته بحثياً.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MODELS ============ -->
+<section id="models" style="background: var(--paper-warm); margin: 0 -32px; padding: 100px 32px;">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">2</span><span>نماذج التعلم العميق</span></div>
+    <h2 class="section-title">خمس عائلات من النماذج<br>تُشغّل مسار بَصِيرة</h2>
+    <p class="section-intro">تمثّل العائلات الخمس مراحل المسار: <span class="en">CNN</span> لقراءة الخطّ، <span class="en">VLMs</span> لفهم المستند، <span class="en">Transformers/LLMs</span> للفهم، <span class="en">Diffusion</span> لتوليد البيانات، و<span class="en">RAG</span> لكبح الهلوسة.</p>
+
+    <div class="models-grid">
+      <article class="model-card" id="model-cnn">
+        <div class="model-num en">Model · 01</div>
+        <h3 class="model-name">CNN</h3>
+        <div class="model-name-ar">الشبكات العصبية الالتفافية</div>
+        <span class="model-tag">Predictive AI</span>
+        <p class="model-desc">العمود الفقري للرؤية الحاسوبية، وتُدمج مع <span class="en">BiLSTM</span> وخوارزمية <span class="en">CTC</span> لقراءة الخطّ العربي المتصل دون تقطيع يدوي للحروف.</p>
+        <div class="model-eg"><strong>تطبيق:</strong> نموذج <span class="en">ADOCRNet (CNN + BiLSTM + CTC)</span> للتعرف على النص العربي المطبوع واليدوي على مجموعات مثل <span class="en">IFN/ENIT</span>.</div>
+        <div class="model-formula"><span class="lbl">Conv:</span> S(i,j) = Σ Σ I(i+m, j+n)·K(m,n)　·　<span class="lbl">CTC Loss:</span> L = −log Σ P(π|x)</div>
+      </article>
+
+      <article class="model-card" id="model-vlm">
+        <div class="model-num en">Model · 02</div>
+        <h3 class="model-name">Qari-OCR / VLMs</h3>
+        <div class="model-name-ar">نماذج الرؤية واللغة</div>
+        <span class="model-tag">Predictive AI</span>
+        <p class="model-desc">تدمج مُشفّر رؤية مع نموذج لغوي فتفهم بنية المستند لا حروفه فقط. <span class="en">Qari-OCR</span> مبني على <span class="en">Qwen2-VL</span> ومُحسَّن للعربية والتشكيل.</p>
+        <div class="model-eg"><strong>تطبيق:</strong> حقّق <span class="en">Qari v0.2</span> معدل خطأ حرف <span class="num">~6</span>٪ على نص مُشكَّل، ويتكامل مع أنظمة <span class="en">Arabic Vision RAG</span>.</div>
+      </article>
+
+      <article class="model-card" id="model-transformer">
+        <div class="model-num en">Model · 03</div>
+        <h3 class="model-name">Transformers & LLMs</h3>
+        <div class="model-name-ar">المحوّلات والنماذج اللغوية</div>
+        <span class="model-tag">Generative AI</span>
+        <p class="model-desc">بنية الانتباه الذاتي (<span class="en">Self-Attention</span>، 2017) أساس النماذج العربية: <span class="en">AraBERT</span> و<span class="en">CAMeLBERT</span> التأسيسية، و<span class="en">ALLaM</span> و<span class="en">Jais</span> الكبيرة.</p>
+        <div class="model-eg"><strong>تطبيق:</strong> تصدّر <span class="en">ALLaM</span> معيار <span class="en">Arabic MMLU</span> عالمياً، ويدعم <span class="en">Jais 2 (70B)</span> الفصحى واللهجات معاً.</div>
+        <div class="model-formula"><span class="lbl">Self-Attention:</span> Attention(Q,K,V) = softmax(Q·Kᵀ / √dₖ)·V</div>
+      </article>
+
+      <article class="model-card" id="model-diffusion">
+        <div class="model-num en">Model · 04</div>
+        <h3 class="model-name">Diffusion Models</h3>
+        <div class="model-name-ar">نماذج الانتشار التوليدية</div>
+        <span class="model-tag">Generative AI</span>
+        <p class="model-desc">تتعلّم التوليد عبر عكس تشويش تدريجي. تعالج أكبر تحديات العربية — شُحّ البيانات المُعنوَنة — بتوليد صور كتابة يدوية اصطناعية واقعية.</p>
+        <div class="model-eg"><strong>تطبيق:</strong> <span class="en">One-DM (ECCV 2024)</span> يحاكي أيّ نمط خطّي من عيّنة واحدة؛ وتدريب <span class="en">OCR</span> على بيانات مولَّدة خفّض الخطأ <span class="num">~45</span>٪.</div>
+        <div class="model-formula"><span class="lbl">Forward:</span> q(xₜ | xₜ₋₁) = N(xₜ; √(1−βₜ)·xₜ₋₁, βₜI)</div>
+      </article>
+
+      <article class="model-card" id="model-rag">
+        <div class="model-num en">Model · 05</div>
+        <h3 class="model-name">RAG</h3>
+        <div class="model-name-ar">التوليد المعزَّز بالاسترجاع</div>
+        <span class="model-tag">Generative AI</span>
+        <p class="model-desc">يجمع مُسترجِعاً يبحث في النص الموثَّق ومولّداً يُرسي إجابته فيه. هنا «ضمير» المسار الذي يمنع اختلاق الآيات والأحاديث.</p>
+        <div class="model-eg"><strong>تطبيق:</strong> رفع <span class="en">RAG</span> دقة <span class="en">ALLaM</span> في فهم القرآن والحديث من <span class="num">57</span>٪ إلى <span class="num">86</span>٪ على «معجم الدوحة التاريخي».</div>
+        <div class="model-formula"><span class="lbl">Retrieve:</span> D = top-k · sim(q, dᵢ)　·　<span class="lbl">Generate:</span> p(y | q, D)</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPANIES ============ -->
+<section id="companies" class="companies">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">3</span><span>الجهات الرائدة</span></div>
+    <h2 class="section-title">من يبني الذكاء العربي<br>في العالم اليوم</h2>
+    <p class="section-intro">خمس حالات تمثّل خمسة مستويات: هيئة سيادية، شركة إقليمية عملاقة، شركة ناشئة، مختبر أكاديمي، ونموذج مفتوح المصدر.</p>
+
+    <div class="company-row">
+      <div class="company-rank num">01</div>
+      <div>
+        <div class="company-name">سدايا — ALLaM</div>
+        <div class="company-origin">السعودية · <span class="num">2024</span></div>
+      </div>
+      <p class="company-desc">نموذج لغوي عربي سيادي من المركز الوطني للذكاء الاصطناعي، دُرِّب على أكثر من <span class="num">3</span> تريليونات رمز بمشاركة <span class="num">400</span>+ خبير و<span class="num">160</span> جهة. متاح على <span class="en">watsonx</span> و<span class="en">Azure</span> و<span class="en">Hugging Face</span>.</p>
+      <div class="company-stat">
+        <div class="company-stat-num num">#1</div>
+        <div class="company-stat-label">عالمياً في فئته على <span class="en">Arabic MMLU</span></div>
+      </div>
+    </div>
+
+    <div class="company-row">
+      <div class="company-rank num">02</div>
+      <div>
+        <div class="company-name">G42 / Inception — Jais</div>
+        <div class="company-origin">الإمارات · <span class="num">2023</span></div>
+      </div>
+      <p class="company-desc">أعلى نماذج اللغة العربية المفتوحة جودةً، بالتعاون مع <span class="en">MBZUAI</span> و<span class="en">Cerebras</span>. تطوّر من <span class="num">13B</span> إلى <span class="en">Jais 2</span> بـ<span class="num">70</span> مليار معامل (ديسمبر <span class="num">2025</span>) يدعم الفصحى واللهجات.</p>
+      <div class="company-stat">
+        <div class="company-stat-num num">70B</div>
+        <div class="company-stat-label">معامل في أحدث إصدار مفتوح الأوزان</div>
+      </div>
+    </div>
+
+    <div class="company-row">
+      <div class="company-rank num">03</div>
+      <div>
+        <div class="company-name">Mawdoo3 — سلمى</div>
+        <div class="company-origin">الأردن · <span class="num">2017</span></div>
+      </div>
+      <p class="company-desc">منصة المحتوى العربي الأكبر عالمياً (<span class="num">50</span> مليون+ مستخدم)، طوّرت أول مساعد صوتي عربي «سلمى» وعدّة معالجة لغوية (تشكيل، <span class="en">NER</span>، مشاعر، <span class="en">TTS</span>) وخدمات <span class="en">B2B</span> للقطاع المصرفي.</p>
+      <div class="company-stat">
+        <div class="company-stat-num num">1st</div>
+        <div class="company-stat-label">مساعد صوتي عربي (<span class="en">Siri</span> العربية)</div>
+      </div>
+    </div>
+
+    <div class="company-row">
+      <div class="company-rank num">04</div>
+      <div>
+        <div class="company-name">CAMeL Lab — AraBERT</div>
+        <div class="company-origin">NYU Abu Dhabi · <span class="num">2014</span></div>
+      </div>
+      <p class="company-desc">مختبر أكاديمي رائد أنتج نماذج <span class="en">CAMeLBERT</span> التأسيسية وأدوات <span class="en">CAMeL Tools</span> (تحليل صرفي، تمييز كيانات، لهجة) التي يعتمدها الباحثون والشركات لمعالجة غموض التشكيل.</p>
+      <div class="company-stat">
+        <div class="company-stat-num num">83٪</div>
+        <div class="company-stat-label">درجة <span class="en">F1</span> لتمييز الكيانات على <span class="en">ANERcorp</span></div>
+      </div>
+    </div>
+
+    <div class="company-row">
+      <div class="company-rank num">05</div>
+      <div>
+        <div class="company-name">Qari-OCR</div>
+        <div class="company-origin">بحث عربي · <span class="num">2025</span></div>
+      </div>
+      <p class="company-desc">سلسلة نماذج رؤية ولغة مفتوحة المصدر لاستخراج النص العربي عالي الدقة، مبنية على <span class="en">Qwen2-VL</span> ومُحسَّنة بالضبط الدقيق على بيانات اصطناعية، تتعامل مع التشكيل والكتابة اليدوية.</p>
+      <div class="company-stat">
+        <div class="company-stat-num num">0.74</div>
+        <div class="company-stat-label">درجة <span class="en">BLEU</span> على نص مُشكَّل (<span class="en">v0.2</span>)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TIMELINE ============ -->
+<section id="timeline">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">4</span><span>الخط الزمني</span></div>
+    <h2 class="section-title">تطور الذكاء العربي<br>من <span class="num">2014</span> إلى <span class="num">2031</span></h2>
+    <p class="section-intro">يسير التطور العالمي في معالجة العربية بالتوازي مع بناء المملكة لمنظومة سيادية عبر سدايا ورؤية 2030.</p>
+
+    <div class="timeline-wrap">
+      <div class="tl-toggle" role="tablist">
+        <button class="tl-btn active" data-filter="all">الكل</button>
+        <button class="tl-btn" data-filter="global">عالمي/عربي</button>
+        <button class="tl-btn" data-filter="saudi">سعودي</button>
+      </div>
+
+      <div class="timeline" id="timeline-items">
+
+        <div class="tl-item right" data-track="global">
+          <div class="tl-card">
+            <span class="tl-card-flag global">Arab · Research</span>
+            <h4>تأسيس مختبر CAMeL</h4>
+            <p>إنشاء مختبر النمذجة الحاسوبية للغة في <span class="en">NYU Abu Dhabi</span> — نواة الأدوات والنماذج العربية التأسيسية التي بُني عليها المجال لاحقاً.</p>
+            <div class="tl-model en">Arabic NLP Foundations</div>
+          </div>
+          <div class="tl-year global num">2014</div>
+        </div>
+
+        <div class="tl-item left" data-track="global">
+          <div class="tl-year global num">2018</div>
+          <div class="tl-card">
+            <span class="tl-card-flag global">Arab</span>
+            <h4>سلمى من Mawdoo3</h4>
+            <p>الإعلان عن أول مساعد صوتي عربي في <span class="en">Dubai Lynx</span>، وإطلاق عدّة معالجة لغوية عربية للمطوّرين (تشكيل، كيانات، مشاعر).</p>
+            <div class="tl-model en">First Arabic Voice Assistant</div>
+          </div>
+        </div>
+
+        <div class="tl-item right" data-track="global">
+          <div class="tl-card">
+            <span class="tl-card-flag global">Global · Research</span>
+            <h4>AraBERT & Diffusion HTR</h4>
+            <p>إطلاق <span class="en">AraBERT</span> (محوّلات عربية تأسيسية)، وظهور نماذج الانتشار لتوليد الكتابة اليدوية — أساس معالجة شُحّ البيانات.</p>
+            <div class="tl-model en">Transformers + Diffusion</div>
+          </div>
+          <div class="tl-year global num">2020</div>
+        </div>
+
+        <div class="tl-item left" data-track="global">
+          <div class="tl-year global num">2023</div>
+          <div class="tl-card">
+            <span class="tl-card-flag global">Arab · Breakthrough</span>
+            <h4>إطلاق Jais</h4>
+            <p>G42/Inception تطلق أعلى نماذج اللغة العربية المفتوحة جودةً (<span class="num">13B</span>)، مدرَّباً على حاسوب <span class="en">Condor Galaxy</span> الفائق.</p>
+            <div class="tl-model en">Open Arabic LLM</div>
+          </div>
+        </div>
+
+        <div class="tl-item right" data-track="saudi">
+          <div class="tl-card">
+            <span class="tl-card-flag saudi">Saudi · Breakthrough</span>
+            <h4>ALLaM يتصدّر عالمياً</h4>
+            <p>نموذج سدايا <span class="en">ALLaM</span> يحتل المركز الأول عالمياً في فئته على <span class="en">Arabic MMLU</span> في قمة <span class="en">GAIN 2024</span>، ويُتاح على <span class="en">watsonx</span>.</p>
+            <div class="tl-model" style="color: var(--rust);">Sovereign Arabic LLM</div>
+          </div>
+          <div class="tl-year saudi num">2024</div>
+        </div>
+
+        <div class="tl-item left" data-track="global">
+          <div class="tl-year global num">2025</div>
+          <div class="tl-card">
+            <span class="tl-card-flag global">Arab</span>
+            <h4>Qari-OCR & Jais 2</h4>
+            <p>إطلاق <span class="en">Qari-OCR</span> (تعرّف ضوئي عربي مبني على <span class="en">Qwen2-VL</span>)، و<span class="en">Jais 2</span> بـ<span class="num">70</span> مليار معامل.</p>
+            <div class="tl-model en">VLM-OCR + 70B LLM</div>
+          </div>
+        </div>
+
+        <div class="tl-item right" data-track="saudi">
+          <div class="tl-card">
+            <span class="tl-card-flag saudi">Saudi</span>
+            <h4>عام الذكاء الاصطناعي</h4>
+            <p>سدايا تُعلن <span class="num">2026</span> «عام الذكاء الاصطناعي»، واستضافة <span class="en">ALLaM 34B</span> سيادياً عبر <span class="en">HUMAIN</span> وفق نظام حماية البيانات.</p>
+            <div class="tl-model" style="color: var(--rust);">Year of AI · HUMAIN</div>
+          </div>
+          <div class="tl-year saudi num">2026</div>
+        </div>
+
+        <div class="tl-item left" data-track="global">
+          <div class="tl-year future-yr num">2031</div>
+          <div class="tl-card" style="border: 2px dashed var(--rust); background: rgba(14, 107, 87, 0.05);">
+            <span class="tl-card-flag saudi">Future · Target</span>
+            <h4>نماذج عربية موحّدة</h4>
+            <p>وكلاء يقرأون المخطوط ويفهمونه ويُجيبون عنه في نموذج واحد متعدد الأنماط، مع رقمنة وطنية للتراث العربي وإتاحته بحثياً.</p>
+            <div class="tl-model" style="color: var(--rust);">Unified Heritage Pipelines</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHALLENGES ============ -->
+<section id="challenges">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">5</span><span>التحديات</span></div>
+    <h2 class="section-title">ما لا يُقال<br>عن أتمتة فهم العربية</h2>
+    <p class="section-intro">قوة المسار لا تُعفيه من مخاطر جوهرية، تبدأ من تعقيد الخطّ وتنتهي عند أمانة النقل في النصوص المقدّسة. ثلاثة محاور تستحق النقد الصريح.</p>
+
+    <div class="challenges-grid">
+      <div class="challenge">
+        <div class="ch-num en">Challenge · 01</div>
+        <h4>تعقيد الخطّ وشُحّ البيانات</h4>
+        <p>الخطّ العربي متصل تتغيّر فيه أشكال الحروف، والتشكيل يُحذف فينشأ الغموض («وحدة»). يُضاف شُحّ البيانات المُعنوَنة، خصوصاً لخطوط المخطوطات النادرة — وخطأ القراءة يتضخّم في الفهم.</p>
+      </div>
+
+      <div class="challenge">
+        <div class="ch-num en">Challenge · 02</div>
+        <h4>الخصوصية وتحيّز التمثيل</h4>
+        <p>تمرير وثائق حسّاسة عبر واجهات أجنبية يهدّد الخصوصية وسيادة البيانات، ولهذا تُستضاف <span class="en">ALLaM 34B</span> داخل المملكة. كما يهمّش تمحور النماذج حول الفصحى متحدثي اللهجات، ما يستوجب بيانات شاملة.</p>
+      </div>
+
+      <div class="challenge">
+        <div class="ch-num en">Challenge · 03</div>
+        <h4>الهلوسة والإطار التنظيمي</h4>
+        <p>اختلاق آية أو حديث خطر حضاري وديني بالغ؛ <span class="en">RAG</span> والرقابة البشرية خطّا الدفاع. وتنظيمياً يحكم نظام حماية البيانات السعودي (<span class="en">PDPL</span>) المعالجة، بينما تقود سدايا الحوكمة الوطنية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FUTURE ============ -->
+<section id="future" class="future-section">
+  <div class="container">
+    <div class="section-eyebrow"><span class="ch num">6</span><span>المستقبل</span></div>
+    <h2 class="section-title">ثلاثة تحوّلات قادمة<br>في خمس سنوات</h2>
+    <p class="section-intro">يتجه فهم العربية آلياً بحلول <span class="num">2031</span> نحو تحوّلات جوهرية، تقودها المملكة عبر نماذج سيادية وبنية تحتية وإعلان <span class="num">2026</span> عام الذكاء الاصطناعي.</p>
+
+    <div class="future-grid">
+      <div class="future-item">
+        <h4>نماذج عربية موحّدة</h4>
+        <p>تتقارب «القراءة» و«الفهم» في نماذج رؤية-لغة عربية موحّدة تقرأ المخطوط وتفهمه وتُجيب عنه في نموذج واحد، على امتداد <span class="en">Qari-OCR</span>، وتشمل الفصحى واللهجات كما في <span class="en">Jais 2</span>.</p>
+      </div>
+
+      <div class="future-item">
+        <h4>مسارات وكيلة لرقمنة التراث</h4>
+        <p>وكلاء (<span class="en">AI Agents</span>) يديرون رقمنة المخطوطات كاملةً — من الصورة إلى الفهرسة إلى الإجابة المُرسَّخة — مع بيانات <span class="en">Diffusion</span> اصطناعية وتعلّم فيدرالي يحفظ الخصوصية.</p>
+      </div>
+
+      <div class="future-item">
+        <h4>ريادة المملكة</h4>
+        <p>مع توسّع <span class="en">ALLaM</span> واستضافته سيادياً عبر <span class="en">HUMAIN</span>، وجهود مجمع الملك سلمان العالمي للغة العربية في المدوّنات الرقمية، تتهيأ بيئة خصبة لمشاريع وطنية تُرقمن التراث وتُتيحه.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-about">
+      <h5>About this page</h5>
+      <p>هذه الصفحة مرافقة لمشروع <span class="en">بَصِيرة (Basira)</span> — تقرير بحثي في مقرر <span class="en">Advanced Deep Learning</span> حول مسار آلي لرقمنة وفهم المخطوطات والوثائق العربية يدمج الرؤية الحاسوبية ونماذج اللغة العربية الكبيرة و<span class="en">RAG</span>. مصمّمة بأدوات الذكاء الاصطناعي ومنشورة على <span class="en">GitHub Pages</span>، وكل الإحصاءات موثّقة من مصادر حقيقية.</p>
+    </div>
+
+    <div class="footer-col">
+      <h5>Key References</h5>
+      <ul>
+        <li>Attention Is All You Need (2017)</li>
+        <li>RAG — Lewis et al. (2020)</li>
+        <li>AraBERT (2020) · CAMeLBERT (2021)</li>
+        <li>ALLaM — SDAIA (2024)</li>
+        <li>Qari-OCR (2025)</li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h5>Institutions & Models</h5>
+      <ul>
+        <li><a href="https://sdaia.gov.sa" target="_blank" rel="noopener">SDAIA — sdaia.gov.sa</a></li>
+        <li><a href="https://www.g42.ai" target="_blank" rel="noopener">G42 / Inception — Jais</a></li>
+        <li><a href="https://ai.mawdoo3.com" target="_blank" rel="noopener">Mawdoo3 — Salma</a></li>
+        <li><a href="https://nyuad.nyu.edu" target="_blank" rel="noopener">CAMeL Lab — NYUAD</a></li>
+        <li><a href="https://arxiv.org/abs/2506.02295" target="_blank" rel="noopener">Qari-OCR — arXiv</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>نايف الحربي · <span class="en">Advanced Deep Learning · 2026</span></span>
+    <span class="en">بَصِيرة · Built with Claude Opus · GitHub Pages</span>
+  </div>
+</footer>
+
+<script>
+  // Timeline filter
+  const buttons = document.querySelectorAll('.tl-btn');
+  const items = document.querySelectorAll('.tl-item');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      items.forEach(item => {
+        if (filter === 'all' || item.dataset.track === filter) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        const offset = target.offsetTop - 80;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
